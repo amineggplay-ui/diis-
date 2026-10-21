@@ -1,0 +1,44 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for build.sh
+        run: |
+          if [ -f "OfflineDict/build.sh" ]; then
+            chmod +x OfflineDict/build.sh
+          elif [ -f "build.sh" ]; then
+            chmod +x build.sh
+          fi
+
+      - name: Build APK with build.sh
+        run: |
+          if [ -f "OfflineDict/build.sh" ]; then
+            cd OfflineDict && ./build.sh
+          else
+            ./build.sh
+          fi
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OfflineDict-apk
+          path: |
+            **/*.apk
