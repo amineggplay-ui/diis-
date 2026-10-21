@@ -17,8 +17,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK Commandline Tools
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/
+          rm cmdline-tools.zip
+          
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Grant execute permission for build.sh
         run: |
@@ -30,6 +41,9 @@ jobs:
 
       - name: Build APK with build.sh
         run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          
           if [ -f "OfflineDict/build.sh" ]; then
             cd OfflineDict && ./build.sh
           else
